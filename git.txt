@@ -5,3 +5,8 @@
 5, git config user.email "zhaoxuegang@vip.sina.com"
 6, git branch -M main
 7, git remote add origin https://github.com/zhaoxg-sudo/dtu-driver.git
+8, git push -u origin main
+9, git add .
+10,git commit -m "dtu created"
+11,git push
+

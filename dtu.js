@@ -194,7 +194,7 @@ port.on('open', async () => {
   // sendCustomMsg(sendContent)
   // 4. 启动30秒循环定时器
   timerTask = setInterval(() => {
-    sendCustomMsg(sendContent)
+    // sendCustomMsg(sendContent)
     
     serialnumber = serialnumber + 1
     if (serialnumber>65535) {
