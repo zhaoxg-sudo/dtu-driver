@@ -1,1 +1,7 @@
 1，git init
+2, git add git.txt 
+3, git config user.name "zhaoxg-sudo"
+4, git config user.name "zhaoxg-sudo"
+5, git config user.email "zhaoxuegang@vip.sina.com"
+6, git branch -M main
+7, git remote add origin https://github.com/zhaoxg-sudo/dtu-driver.git
