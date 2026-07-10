@@ -33,7 +33,7 @@ parser.on('data', async (line) => {
         code: 1
       }) + '\r\n'
       sendCustomMsg(reply)
-      console.log('【延迟1s,自动应答下发成功回执】', reply.trim())
+      console.log('【延迟1秒,自动应答下发成功回执】', reply.trim())
     }
   } catch (parseErr) {
     // AT指令、GPS字符串、心跳等非合法控制JSON，不自动回复
