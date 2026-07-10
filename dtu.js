@@ -19,9 +19,25 @@ const sendContent = "$GNRMC,080134.00,A,4002.54143,N,11619.54735,E,0.064,,010726
 // const sendContent = "$GNRMC,103417.00,A,4002.51700,N,11619.52994,E,0.262,,270526,,,A,V*0C\r\n"
 const sendHeart = '{"cmd":"heart","type":"ld100","id":"002026063001","sn":'
 // 打印DTU AT应答
-parser.on('data', (line) => {
+parser.on('data', async (line) => {
   console.log('【收到DTU的消息】', line)
   recvBuffer.push(line)
+  //【新增逻辑：收到带msgId控制指令自动回复成功应答】
+  await sleep(1000)
+  try {
+    const data = JSON.parse(line.trim())
+    if (data.msgId) {
+      const reply = JSON.stringify({
+        cmd: data.cmd,
+        msgId: data.msgId,
+        code: 1
+      }) + '\r\n'
+      sendCustomMsg(reply)
+      console.log('【延迟1s,自动应答下发成功回执】', reply.trim())
+    }
+  } catch (parseErr) {
+    // AT指令、GPS字符串、心跳等非合法控制JSON，不自动回复
+  }
 })
 
 // 打印原始串口数据
@@ -39,44 +55,44 @@ async function initDTU() {
   await sleep(2000)
   console.log('==== DTU初始化：TCP透传模式 ====')
   const cmdList = [
-   // 测试串口AT通道是否正常，返回OK代表串口AT功能可用
-   "usr.cn#AT",
-   // 关闭串口无数据自动重启，0=永久关闭，解决模块提示通讯超时复位告警
-   "usr.cn#AT+RSTIM=0",
-   // 配置串口参数：波特率115200，8数据位，1停止位，无校验，无硬件流控
-   "usr.cn#AT+UART=115200,8,1,NONE,NONE",
-   // 串口缓存打包阈值：缓存达到1024字节时立即打包发送TCP
-   "usr.cn#AT+UARTFL=1024",
-   // 串口打包超时：等待50ms无新数据，强制发送缓存内数据
-   "usr.cn#AT+UARTFT=50",
-   // 开启AT指令回显，下发指令模块原样返回，方便调试查看下发内容
-   "usr.cn#AT+E=ON",
-   // 设置串口AT访问密码前缀为usr.cn#，透传模式下发AT必须携带此前缀
-   "usr.cn#AT+CMDPW=usr.cn#",
-   // 开启透传模式下串口AT功能，关闭后NET模式无法下发任何AT配置指令
-   "usr.cn#AT+UATEN=ON",
-   // 开启NAT内网保活，4G移动网络下维持长连接，避免运营商主动断链
-   "usr.cn#AT+NATEN=ON",
-   // 4G移动APN配置：CMNET移动公网，无账号密码，0=自动拨号联网
-   "usr.cn#AT+APN=CMNET,,0",
-   // 配置TCP主通道A：TCP客户端，连接服务器IP 123.57.87.144 端口60000
-   "usr.cn#AT+SOCKA=TCP,123.57.87.144,60000",
-   // 启用TCP A通道，模块上电主动连接配置的服务器
-   "usr.cn#AT+SOCKAEN=ON",
-   // TCP长连接模式，断线后自动循环重连，不会单次连接断开后停止
-   "usr.cn#AT+SOCKASL=LONG",
-   // TCP保活参数(通道A)：开启保活；空闲60s发心跳；无响应15s重试；失败3次判定断线重连
-   "usr.cn#AT+KEEPALIVEA=1,60,15,3",
-   // 开启上电注册上报功能，联网后主动上报设备信息给服务端
-   "usr.cn#AT+REGEN=ON",
-   // 注册上报携带内容：设备SN序列号
-   "usr.cn#AT+REGTP=SN",
-   // 注册报文发送时机：TCP链路成功建立完成后上报SN
-   "usr.cn#AT+REGSND=LINK",
-   // 设置设备工作模式为NET网络透传：串口数据透明转发TCP，下行数据输出串口
-   "usr.cn#AT+WKMOD=NET",
-   // 保存全部配置到模块闪存，重启设备参数不丢失
-   "usr.cn#AT+S"
+    // 测试串口AT通道是否正常，返回OK代表串口AT功能可用
+    "usr.cn#AT",
+    // 关闭串口无数据自动重启，0=永久关闭，解决模块提示通讯超时复位告警
+    "usr.cn#AT+RSTIM=0",
+    // 配置串口参数：波特率115200，8数据位，1停止位，无校验，无硬件流控
+    "usr.cn#AT+UART=115200,8,1,NONE,NONE",
+    // 串口缓存打包阈值：缓存达到1024字节时立即打包发送TCP
+    "usr.cn#AT+UARTFL=1024",
+    // 串口打包超时：等待50ms无新数据，强制发送缓存内数据
+    "usr.cn#AT+UARTFT=50",
+    // 开启AT指令回显，下发指令模块原样返回，方便调试查看下发内容
+    "usr.cn#AT+E=ON",
+    // 设置串口AT访问密码前缀为usr.cn#，透传模式下发AT必须携带此前缀
+    "usr.cn#AT+CMDPW=usr.cn#",
+    // 开启透传模式下串口AT功能，关闭后NET模式无法下发任何AT配置指令
+    "usr.cn#AT+UATEN=ON",
+    // 开启NAT内网保活，4G移动网络下维持长连接，避免运营商主动断链
+    "usr.cn#AT+NATEN=ON",
+    // 4G移动APN配置：CMNET移动公网，无账号密码，0=自动拨号联网
+    "usr.cn#AT+APN=CMNET,,0",
+    // 配置TCP主通道A：TCP客户端，连接服务器IP 123.57.87.144 端口60000
+    "usr.cn#AT+SOCKA=TCP,123.57.87.144,60000",
+    // 启用TCP A通道，模块上电主动连接配置的服务器
+    "usr.cn#AT+SOCKAEN=ON",
+    // TCP长连接模式，断线后自动循环重连，不会单次连接断开后停止
+    "usr.cn#AT+SOCKASL=LONG",
+    // TCP保活参数(通道A)：开启保活；空闲60s发心跳；无响应15s重试；失败3次判定断线重连
+    "usr.cn#AT+KEEPALIVEA=1,60,15,3",
+    // 开启上电注册上报功能，联网后主动上报设备信息给服务端
+    "usr.cn#AT+REGEN=ON",
+    // 注册上报携带内容：设备SN序列号
+    "usr.cn#AT+REGTP=SN",
+    // 注册报文发送时机：TCP链路成功建立完成后上报SN
+    "usr.cn#AT+REGSND=LINK",
+    // 设置设备工作模式为NET网络透传：串口数据透明转发TCP，下行数据输出串口
+    "usr.cn#AT+WKMOD=NET",
+    // 保存全部配置到模块闪存，重启设备参数不丢失
+    "usr.cn#AT+S"
   ]
 
   for (const cmd of cmdList) {
@@ -170,7 +186,7 @@ async function printDtuLocalIP() {
 }
 // 单次发送自定义报文（透传直发，无AT指令）
 function sendCustomMsg(messge) {
-  console.log('\n【30秒定时心跳推送给TCP服务器】', messge.trim())
+  console.log('\n【30秒定时心跳通过DTU推送给TCP服务器】', messge.trim())
   port.write(messge)
 }
 
@@ -194,7 +210,7 @@ port.on('open', async () => {
   // sendCustomMsg(sendContent)
   // 4. 启动30秒循环定时器
   timerTask = setInterval(() => {
-    // sendCustomMsg(sendContent)
+    //sendCustomMsg(sendContent)
     
     serialnumber = serialnumber + 1
     if (serialnumber>65535) {

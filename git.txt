@@ -9,4 +9,6 @@
 9, git add .
 10,git commit -m "dtu created"
 11,git push
+12,node dtu.js
+
 
