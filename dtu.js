@@ -1,6 +1,7 @@
 const { SerialPort } = require('serialport')
 const { ReadlineParser } = require('@serialport/parser-readline')
 
+// version V1.0 20160713 zhaoxuegang
 // 串口参数 COM1 115200 8N1
 const port = new SerialPort({
   path: 'COM1',
@@ -91,8 +92,29 @@ async function initDTU() {
     "usr.cn#AT+REGSND=LINK",
     // 设置设备工作模式为NET网络透传：串口数据透明转发TCP，下行数据输出串口
     "usr.cn#AT+WKMOD=NET",
+    // ========== 独立GNSS定位SOCKG通道（GPS专用TCP链路，与业务分离） ==========
+    // 开启内置GNSS定位硬件
+    "usr.cn#AT+GNSSFUNEN=1",
+    // GNSS模式：INDE独立服务器，GPS不走SOCKA业务通道，仅走SOCKG独立通道
+    "usr.cn#AT+GNSSMOD=NET",
+    // 关闭所有NMEA原始报文输出到串口，电脑不会收到GPS语句
+    "usr.cn#AT+GPSOUT=0,0,0,0,0,0",
+    // 配置独立GPS套接字SOCKG TCPC，填写你的GPS服务器IP与端口（自行修改）
+    "usr.cn#AT+SOCKG=TCPC,123.57.87.144,60000",
+    // 独立GPS通道保活参数
+    "usr.cn#AT+KEEPALIVEG=1,60,15,3",
+    // 开启独立GPS通道上电注册
+    "usr.cn#AT+GREGEN=ON",
+    // GPS注册包类型SN
+    "usr.cn#AT+GREGTP=SN",
+    // GPS注册包：链路建立后上报
+    "usr.cn#AT+GREGSND=LINK",
+    // GPS定位上报间隔50秒，仅从独立SOCKG通道发送
+    "usr.cn#AT+GPOSUPTM=50",
     // 保存全部配置到模块闪存，重启设备参数不丢失
-    "usr.cn#AT+S"
+    "usr.cn#AT+S",
+    // 重启DTU，让配置全部生效
+    "usr.cn#AT+Z"
   ]
 
   for (const cmd of cmdList) {
