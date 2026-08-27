@@ -24,7 +24,7 @@ parser.on('data', async (line) => {
   console.log('【收到DTU的消息】', line)
   recvBuffer.push(line)
   //【新增逻辑：收到带msgId控制指令自动回复成功应答】
-  await sleep(1000)
+  await sleep(100)
   try {
     const data = JSON.parse(line.trim())
     if (data.msgId) {
@@ -110,7 +110,7 @@ async function initDTU() {
     // GPS注册包：链路建立后上报
     "usr.cn#AT+GREGSND=LINK",
     // GPS定位上报间隔50秒，仅从独立SOCKG通道发送
-    "usr.cn#AT+GPOSUPTM=50",
+    "usr.cn#AT+GPOSUPTM=30",
     // 保存全部配置到模块闪存，重启设备参数不丢失
     "usr.cn#AT+S",
     // 重启DTU，让配置全部生效
